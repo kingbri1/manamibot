@@ -1,0 +1,16 @@
+{
+  "name": "manamibot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@twurple/auth": "^8.1.2",
+    "@twurple/easy-bot": "^8.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
