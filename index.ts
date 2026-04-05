@@ -2,10 +2,12 @@ import { getAuthProvider } from "./auth";
 import { ChatClient } from "@twurple/chat";
 import type { CommandHandler } from "./types/command";
 import lurk from "./commands/lurk";
+import coins from "./commands/coins";
 
 const authProvider = await getAuthProvider();
 const commands = new Map<string, CommandHandler>();
 commands.set("lurk", lurk);
+commands.set("coins", coins);
 
 const chatClient = new ChatClient({
   authProvider,
