@@ -1,64 +1,53 @@
-import { Bot, createBotCommand } from "@twurple/easy-bot";
-import { RefreshingAuthProvider } from "@twurple/auth";
-import { promises as fs } from "fs";
+import { getAuthProvider } from "./auth";
+import { ChatClient } from "@twurple/chat";
+import type { CommandHandler } from "./types/command";
+import lurk from "./commands/lurk";
 
-interface Creds {
-  clientId: string;
-  clientSecret: string;
-}
+const authProvider = await getAuthProvider();
+const commands = new Map<string, CommandHandler>();
+commands.set("lurk", lurk);
 
-const creds = JSON.parse(await fs.readFile("creds.json", "utf-8")) as Creds;
-const tokens = JSON.parse(await fs.readFile("tokens.json", "utf-8"));
+const chatClient = new ChatClient({
+  authProvider,
+  channels: ["kingbri1st"],
+});
+chatClient.connect();
 
-const authProvider = new RefreshingAuthProvider({
-  clientId: creds.clientId,
-  clientSecret: creds.clientSecret,
+chatClient.onConnect(() => {
+  console.log("Connected to chat!");
 });
 
-authProvider.onRefresh(async (_, newTokenData) => {
-  const newTokens = {
-    accessToken: newTokenData.accessToken,
-    refreshToken: newTokenData.refreshToken,
+chatClient.onDisconnect((manually, reason) => {
+  console.log("Disconnected from chat!", { manually, reason });
+});
+
+chatClient.onAuthenticationFailure(() => {
+  console.log("Authentication failed!");
+});
+
+chatClient.onMessage(async (channel, user, text, msg) => {
+  const prefix = "!";
+  if (!text.startsWith(prefix)) {
+    return;
+  }
+
+  const command = text.trim().split(" ");
+  if (command.length === 0 || !command[0]) {
+    return;
+  }
+
+  const cmdName = command[0].slice(prefix.length);
+  const cmdParams = command.slice(1);
+
+  const cmdHandler = commands.get(cmdName);
+  if (!cmdHandler) {
+    return;
+  }
+
+  const ctx = {
+    chat: chatClient,
+    channel,
   };
 
-  await fs.writeFile("tokens.json", JSON.stringify(newTokens, null, 2));
-});
-
-await authProvider.addUserForToken(tokens, ["chat"]);
-
-const bot = new Bot({
-  authProvider: authProvider,
-  channel: "kingbri1st",
-  commands: [
-    createBotCommand("d20", async (params, { userName, say, timeout }) => {
-      const diceRoll = Math.floor(Math.random() * 20) + 1;
-      if (diceRoll === 1) {
-        await say(
-          `@${userName} rolled a critical failure and must be punished!`,
-        );
-        await timeout(30, "critical failure");
-      } else if (diceRoll === 20) {
-        await say(
-          `Woah, critical success! @${userName} deserves all the praise!`,
-        );
-      } else {
-        await say(`@${userName} rolled a ${diceRoll}!`);
-      }
-    }),
-    createBotCommand("lurk", async (params, { userName, say }) => {
-      await say(`@${userName} is lurking...`);
-    }),
-  ],
-});
-
-bot.onAuthenticationSuccess(() => {
-  console.log("Connected!");
-});
-
-bot.onDisconnect((manually, reason) => {
-  console.log("Disconnected!", { manually, reason });
-});
-
-bot.onAuthenticationFailure(() => {
-  console.log("Authentication failed!");
+  await cmdHandler(ctx, msg, cmdParams);
 });

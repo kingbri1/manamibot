@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@twurple/auth": "^8.1.2",
+    "@twurple/chat": "^8.1.2",
     "@twurple/easy-bot": "^8.0.3"
   },
   "devDependencies": {

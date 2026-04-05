@@ -11,6 +11,9 @@ importers:
       '@twurple/auth':
         specifier: ^8.1.2
         version: 8.1.2
+      '@twurple/chat':
+        specifier: ^8.1.2
+        version: 8.1.2(@twurple/auth@8.1.2)
       '@twurple/easy-bot':
         specifier: ^8.0.3
         version: 8.1.2
