@@ -1,13 +1,11 @@
 import { getAuthProvider } from "./auth";
 import { ChatClient } from "@twurple/chat";
-import type { CommandHandler } from "./types/command";
-import lurk from "./commands/lurk";
-import coins from "./commands/coins";
+import { handleCommand, registerCommands } from "./commands/manager";
+import { initializeDatabase } from "./db/dbProvider";
 
 const authProvider = await getAuthProvider();
-const commands = new Map<string, CommandHandler>();
-commands.set("lurk", lurk);
-commands.set("coins", coins);
+registerCommands();
+initializeDatabase();
 
 const chatClient = new ChatClient({
     authProvider,
@@ -27,29 +25,6 @@ chatClient.onAuthenticationFailure(() => {
     console.log("Authentication failed!");
 });
 
-chatClient.onMessage(async (channel, user, text, msg) => {
-    const prefix = "!";
-    if (!text.startsWith(prefix)) {
-        return;
-    }
-
-    const command = text.trim().split(" ");
-    if (command.length === 0 || !command[0]) {
-        return;
-    }
-
-    const cmdName = command[0].slice(prefix.length);
-    const cmdParams = command.slice(1);
-
-    const cmdHandler = commands.get(cmdName);
-    if (!cmdHandler) {
-        return;
-    }
-
-    const ctx = {
-        chat: chatClient,
-        channel,
-    };
-
-    await cmdHandler(ctx, msg, cmdParams);
+chatClient.onMessage(async (channel, _user, text, msg) => {
+    await handleCommand(chatClient, text, channel, msg);
 });
