@@ -1,7 +1,11 @@
 import lurk from "./lurk";
 import coins from "./coins";
 import type { CommandHandler } from "../types/command";
-import { customCommandHandler, registerCustomCommands } from "./custom";
+import {
+    customCommandHandler,
+    registerCustomCommands,
+    customAdmin,
+} from "./custom";
 import type { ChatClient, ChatMessage } from "@twurple/chat";
 
 const prefix = "!";
@@ -10,6 +14,7 @@ export const commands = new Map<string, CommandHandler>();
 export async function registerCommands() {
     commands.set("lurk", lurk);
     commands.set("coins", coins);
+    commands.set("command", customAdmin);
 
     await registerCustomCommands();
 }
