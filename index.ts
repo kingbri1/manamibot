@@ -1,4 +1,4 @@
-import { getAuthProvider } from "./auth";
+import { getAuthProvider } from "./utils/auth";
 import { ChatClient } from "@twurple/chat";
 import { handleCommand, registerCommands } from "./commands/manager";
 import { initializeDatabase } from "./db/dbProvider";
